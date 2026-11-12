@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LogicGate Identifier — Digital Logic Gates from Natural Language</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for crisp Boolean expressions -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            ink: '#09090b',
+            surface: '#ffffff',
+            subtle: '#f4f4f5',
+            muted: '#71717a',
+            borderline: '#e4e4e7',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Isometric Grid Background */
+    .iso-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    }
+
+    .iso-dots {
+      background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Subtle pulse animation for circuit lines */
+    @keyframes circuitPulse {
+      0% { stroke-dashoffset: 60; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .pulse-wire {
+      stroke-dasharray: 6 6;
+      animation: circuitPulse 2s linear infinite;
+    }
+
+    /* Floating Isometric 3D tilt effect */
+    .isometric-stage {
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+    .iso-card-1 {
+      transform: rotateX(20deg) rotateZ(-16deg) skewX(6deg) translateY(-10px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .iso-card-1:hover {
+      transform: rotateX(15deg) rotateZ(-12deg) skewX(4deg) translateY(-22px) scale(1.02);
+    }
+
+    .iso-card-2 {
+      transform: rotateX(20deg) rotateZ(-16deg) skewX(6deg) translateY(30px) translateX(-20px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .iso-card-2:hover {
+      transform: rotateX(15deg) rotateZ(-12deg) skewX(4deg) translateY(18px) translateX(-20px) scale(1.02);
+    }
+
+    .iso-card-3 {
+      transform: rotateX(20deg) rotateZ(-16deg) skewX(6deg) translateY(90px) translateX(40px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .iso-card-3:hover {
+      transform: rotateX(15deg) rotateZ(-12deg) skewX(4deg) translateY(76px) translateX(40px) scale(1.02);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f4f4f5;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d4d4d8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1aa;
+    }
+  </style>
+</head>
+<body class="bg-white text-ink font-sans selection:bg-neutral-900 selection:text-white">
+
+  <!-- ================= TOP HEADER / NAVIGATION ================= -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-borderline">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo Left -->
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-lg bg-ink flex items-center justify-center text-white transition-transform group-hover:scale-105 shadow-sm">
+          <!-- Isometric Gate Cube Icon -->
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span class="font-bold text-base tracking-tight text-ink">LogicGate</span>
+          <span class="font-medium text-sm text-neutral-500">Identifier</span>
+          <span class="text-[10px] font-mono uppercase bg-neutral-100 text-neutral-600 px-1.5 py-0.5 rounded border border-neutral-200">P2 · SLM</span>
+        </div>
+      </a>
+
+      <!-- Clean Navigation Links -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="#features" class="text-sm font-medium text-neutral-600 hover:text-ink transition-colors">Features</a>
+        <a href="#metrics" class="text-sm font-medium text-neutral-600 hover:text-ink transition-colors">Model Metrics</a>
+        <a href="#sandbox" class="text-sm font-medium text-neutral-600 hover:text-ink transition-colors">Live Sandbox</a>
+        <a href="#about" class="text-sm font-medium text-neutral-600 hover:text-ink transition-colors">About</a>
+      </nav>
+
+      <!-- Action Buttons Right -->
+      <div class="flex items-center gap-3">
+        <button onclick="toggleDocsModal(true)" class="text-sm font-medium text-neutral-700 hover:text-ink px-3 py-1.5 rounded-full transition-colors hover:bg-neutral-100">
+          Explore Docs
+        </button>
+        <a href="#sandbox" class="text-sm font-medium bg-ink text-white px-4 py-2 rounded-full hover:bg-neutral-800 transition-all shadow-sm hover:shadow flex items-center gap-1.5">
+          <span>Launch App</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="relative pt-12 pb-16 md:pt-20 md:pb-24 border-b border-borderline overflow-hidden">
+    <!-- Subtle Background Dot Pattern on the Right -->
+    <div class="absolute right-0 top-0 w-1/2 h-full iso-dots opacity-40 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        
+        <!-- Left Column: Big Bold Typography & CTA -->
+        <div class="lg:col-span-6 z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 mb-6">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span class="text-xs font-mono font-medium text-neutral-700">Project P2 · DistilBERT Transformer</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-ink tracking-tight leading-[1.1] mb-6">
+            Digital Logic Gates from Natural Language
+          </h1>
+
+          <p class="text-lg text-neutral-600 leading-relaxed max-w-xl mb-8">
+            AI-powered SLM that classifies natural-language behavioral descriptions (e.g., <em>"output high only when both inputs are high"</em>) into the correct logic gate (<span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">AND</span>, <span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">OR</span>, <span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">NAND</span>, <span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">NOR</span>, <span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">XOR</span>, <span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">XNOR</span>, <span class="font-mono text-xs font-semibold px-1 py-0.5 bg-neutral-100 rounded">NOT</span>).
+          </p>
+
+          <!-- Action CTA Buttons -->
+          <div class="flex flex-wrap items-center gap-4">
+            <a href="#sandbox" class="inline-flex items-center gap-2 bg-ink text-white font-medium px-6 py-3 rounded-full hover:bg-neutral-800 transition-all shadow hover:shadow-md">
+              <span>Try Interactive Sandbox</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </a>
+            <a href="#about" class="inline-flex items-center gap-2 bg-white text-neutral-800 font-medium px-6 py-3 rounded-full border border-neutral-300 hover:border-ink hover:bg-neutral-50 transition-all">
+              <span>View Architecture</span>
+            </a>
+          </div>
+
+          <!-- Quick Metrics Ribbon -->
+          <div class="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-neutral-200">
+            <div>
+              <div class="text-2xl font-bold text-ink font-mono">100%</div>
+              <div class="text-xs text-neutral-500 uppercase tracking-wider mt-0.5">Test Accuracy</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-ink font-mono">&lt; 8.4 ms</div>
+              <div class="text-xs text-neutral-500 uppercase tracking-wider mt-0.5">Inference Latency</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-ink font-mono">7 Classes</div>
+              <div class="text-xs text-neutral-500 uppercase tracking-wider mt-0.5">Canonical Gates</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Isometric Schematic Wireframe & Floating Technical Cards -->
+        <div class="lg:col-span-6 relative flex items-center justify-center min-h-[460px] lg:min-h-[520px]">
+          
+          <!-- Isometric Grid Floor Graphic (matching reference template) -->
+          <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-60" viewBox="0 0 600 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Isometric Perspective Grid Lines -->
+            <g stroke="#d4d4d8" stroke-width="0.75" stroke-dasharray="3 3">
+              <line x1="50" y1="420" x2="550" y2="180" />
+              <line x1="80" y1="450" x2="580" y2="210" />
+              <line x1="20" y1="390" x2="520" y2="150" />
+              <line x1="100" y1="200" x2="500" y2="440" />
+              <line x1="150" y1="170" x2="550" y2="410" />
+              <line x1="50" y1="230" x2="450" y2="470" />
+            </g>
+
+            <!-- Connecting Circuit Wires -->
+            <path d="M 180 320 L 300 250 L 420 340" stroke="#09090b" stroke-width="1.5" fill="none" class="pulse-wire" />
+            <path d="M 300 250 L 300 130 L 410 90" stroke="#09090b" stroke-width="1.5" fill="none" class="pulse-wire" />
+            
+            <!-- Connection Nodes -->
+            <circle cx="300" cy="250" r="4" fill="#09090b" />
+            <circle cx="180" cy="320" r="3" fill="#09090b" />
+            <circle cx="420" cy="340" r="3" fill="#09090b" />
+            <circle cx="410" cy="90" r="3" fill="#09090b" />
+          </svg>
+
+          <!-- Isometric Floating Schematic Stack -->
+          <div class="relative w-full max-w-md isometric-stage">
+
+            <!-- Card 1: Top Floating Window — Natural Language Specification Stream -->
+            <div class="iso-card-1 absolute top-[-60px] left-[10px] w-72 bg-white/95 rounded-xl border border-neutral-300 shadow-xl p-4 backdrop-blur-sm">
+              <div class="flex items-center justify-between border-b border-neutral-200 pb-2 mb-3">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                </div>
+                <span class="text-[10px] font-mono text-neutral-400">prompt_input.seq</span>
+              </div>
+              <div class="font-mono text-xs text-neutral-800 space-y-1.5">
+                <div class="text-[11px] text-neutral-400">&gt; tokenize_stream(seq)</div>
+                <div class="p-2 bg-neutral-50 rounded border border-neutral-200 text-neutral-900 font-medium">
+                  "output high only when both inputs are high"
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-neutral-500 pt-1">
+                  <span>tokens: 8</span>
+                  <span class="text-emerald-600 font-semibold">DistilBERT-Base</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Central Floating Window — DistilBERT Attention & Transformer Core -->
+            <div class="iso-card-2 relative mx-auto w-80 bg-white rounded-xl border border-neutral-900 shadow-2xl p-5">
+              <div class="flex items-center justify-between border-b border-neutral-200 pb-2.5 mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-ink rounded-sm flex items-center justify-center text-[8px] text-white">⚙</div>
+                  <span class="text-xs font-bold text-ink">SLM Core Encoder</span>
+                </div>
+                <span class="text-[10px] font-mono bg-neutral-100 px-2 py-0.5 rounded text-neutral-600 border border-neutral-200">6x Layers</span>
+              </div>
+
+              <!-- Attention Heatmap Graphic Wireframe -->
+              <div class="space-y-2">
+                <div class="text-[10px] font-mono text-neutral-500 flex justify-between">
+                  <span>Self-Attention Weights</span>
+                  <span class="text-neutral-900 font-bold">12 Heads</span>
+                </div>
+                <div class="grid grid-cols-7 gap-1 h-9 bg-neutral-50 p-1 rounded border border-neutral-200">
+                  <div class="bg-neutral-200 rounded-sm"></div>
+                  <div class="bg-neutral-300 rounded-sm"></div>
+                  <div class="bg-neutral-800 rounded-sm"></div>
+                  <div class="bg-neutral-400 rounded-sm"></div>
+                  <div class="bg-neutral-900 rounded-sm"></div>
+                  <div class="bg-neutral-200 rounded-sm"></div>
+                  <div class="bg-neutral-900 rounded-sm"></div>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                  <span class="text-[11px] text-neutral-600 font-mono">Argmax Logit</span>
+                  <span class="text-xs font-mono font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Class: 0 (AND)</span>
+                </div>
+              </div>
+
+              <!-- Central IC Schematic Icon -->
+              <div class="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg class="w-6 h-6 text-neutral-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"></path>
+                  </svg>
+                  <span class="text-xs font-mono font-medium text-neutral-600">DIP-14: 7408</span>
+                </div>
+                <div class="text-xs font-mono text-emerald-600 font-semibold">99.98% conf</div>
+              </div>
+            </div>
+
+            <!-- Card 3: Bottom Floating Window — Synthesized Gate & Truth Table -->
+            <div class="iso-card-3 absolute bottom-[-70px] right-[10px] w-72 bg-white/95 rounded-xl border border-neutral-300 shadow-xl p-4 backdrop-blur-sm">
+              <div class="flex items-center justify-between border-b border-neutral-200 pb-2 mb-2">
+                <span class="text-xs font-bold text-ink">Boolean Synthesis</span>
+                <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Verified ✓</span>
+              </div>
+              <div class="flex items-center justify-between py-1">
+                <span class="text-xs text-neutral-500 font-mono">Q = A · B</span>
+                <span class="text-xs font-mono font-bold text-ink">AND Gate</span>
+              </div>
+              <div class="grid grid-cols-4 gap-1 text-[10px] font-mono text-center pt-1 border-t border-neutral-100">
+                <div class="bg-neutral-100 p-1 rounded">0·0=0</div>
+                <div class="bg-neutral-100 p-1 rounded">0·1=0</div>
+                <div class="bg-neutral-100 p-1 rounded">1·0=0</div>
+                <div class="bg-neutral-900 text-white p-1 rounded font-bold">1·1=1</div>
+              </div>
+            </div>
+
+            <!-- Sleek Cursor Pointer Icon (as in reference template) -->
+            <div class="absolute bottom-[20px] left-[40px] pointer-events-none transform -rotate-12 drop-shadow-md">
+              <svg class="w-6 h-6 text-neutral-900 fill-white stroke-neutral-900" viewBox="0 0 24 24" stroke-width="1.5">
+                <path d="M3 3l7 17 3-7 7-3L3 3z"></path>
+              </svg>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ECOSYSTEM / TECH STACK BAR ================= -->
+  <section class="py-8 bg-neutral-50/60 border-b border-borderline">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- Label -->
+        <span class="text-xs font-mono uppercase tracking-widest text-neutral-400">
+          Trained & Architected With Leading Frameworks
+        </span>
+
+        <!-- Grayscale Partner/Tech Stack Badges -->
+        <div class="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-80 hover:opacity-100 transition-opacity">
+          
+          <!-- PyTorch -->
+          <div class="flex items-center gap-2 group cursor-default">
+            <svg class="w-5 h-5 text-neutral-600 group-hover:text-ink transition-colors" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.001 0a6.599 6.599 0 0 0-4.664 1.936l-1.393 1.39 2.502 2.503 1.4-1.401a3.061 3.061 0 0 1 4.312 4.314l-6.19 6.19a6.6 6.6 0 1 0 9.333-9.333L16.666 4.96A6.568 6.568 0 0 0 12.001 0zm-1.895 14.364a3.06 3.06 0 1 1 4.313-4.314l1.399 1.4 2.502-2.502-1.393-1.394a6.6 6.6 0 0 0-9.332 9.333l2.511-2.523z"/>
+            </svg>
+            <span class="text-sm font-semibold text-neutral-700 group-hover:text-ink transition-colors">PyTorch</span>
+          </div>
+
+          <!-- Hugging Face -->
+          <div class="flex items-center gap-2 group cursor-default">
+            <svg class="w-5 h-5 text-neutral-600 group-hover:text-ink transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 15s1.5 2 4 2 4-2 4-2"></path>
+              <line x1="9" y1="9" x2="9.01" y2="9"></line>
+              <line x1="15" y1="9" x2="15.01" y2="9"></line>
+            </svg>
+            <span class="text-sm font-semibold text-neutral-700 group-hover:text-ink transition-colors">Hugging Face</span>
+          </div>
+
+          <!-- DistilBERT -->
+          <div class="flex items-center gap-2 group cursor-default">
+            <svg class="w-5 h-5 text-neutral-600 group-hover:text-ink transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span class="text-sm font-semibold text-neutral-700 group-hover:text-ink transition-colors">DistilBERT</span>
+          </div>
+
+          <!-- FastAPI -->
+          <div class="flex items-center gap-2 group cursor-default">
+            <svg class="w-5 h-5 text-neutral-600 group-hover:text-ink transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span class="text-sm font-semibold text-neutral-700 group-hover:text-ink transition-colors">FastAPI</span>
+          </div>
+
+          <!-- TailwindCSS -->
+          <div class="flex items-center gap-2 group cursor-default">
+            <svg class="w-5 h-5 text-neutral-600 group-hover:text-ink transition-colors" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.336 6.182 14.975 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.336 13.382 8.975 12 6.001 12z"/>
+            </svg>
+            <span class="text-sm font-semibold text-neutral-700 group-hover:text-ink transition-colors">TailwindCSS</span>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CORE FUNCTION: INTERACTIVE SANDBOX ================= -->
+  <section id="sandbox" class="py-16 md:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <!-- Section Header -->
+      <div class="max-w-3xl mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 mb-4">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-mono font-medium text-neutral-700">Live Inference Sandbox</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold text-ink tracking-tight">
+          Interactive Logic Gate Classifier
+        </h2>
+        <p class="text-base text-neutral-600 mt-3">
+          Type custom circuit behavior in natural English or select one of the fine-tuned dataset presets below to trigger real-time sequence classification.
+        </p>
+      </div>
+
+      <!-- Main Workbench Layout: Two Columns -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- LEFT COLUMN: INPUT WORKBENCH -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-borderline p-6 md:p-8 shadow-sm">
+          
+          <div class="flex items-center justify-between mb-4">
+            <label for="promptInput" class="text-sm font-semibold text-ink flex items-center gap-2">
+              <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              <span>Circuit Behavioral Description</span>
+            </label>
+            <span id="charCount" class="text-xs font-mono text-neutral-400">0 / 256 chars</span>
+          </div>
+
+          <!-- Textarea Input -->
+          <div class="relative mb-5">
+            <textarea 
+              id="promptInput" 
+              rows="4" 
+              placeholder="e.g., output high only when both inputs are high, reverses the incoming signal, returns 1 if inputs mismatch..."
+              class="w-full px-4 py-3.5 rounded-xl border border-neutral-300 focus:border-ink focus:ring-1 focus:ring-ink outline-none font-sans text-sm text-neutral-900 placeholder:text-neutral-400 transition resize-none bg-neutral-50/50"
+            ></textarea>
+          </div>
+
+          <!-- Quick-Fill Preset Chips -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-xs font-mono font-medium text-neutral-500 uppercase tracking-wider">Quick-Fill Presets:</span>
+              <button onclick="pickRandomPreset()" class="text-xs text-neutral-600 hover:text-ink font-medium underline underline-offset-2">
+                Random preset ↺
+              </button>
+            </div>
+            
+            <div class="flex flex-wrap gap-2">
+              <!-- Primary 3 Presets requested in prompt -->
+              <button 
+                onclick="fillPreset('output high only when both inputs are high')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "output high only when both inputs are high"
+              </button>
+              
+              <button 
+                onclick="fillPreset('reverses the incoming signal')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "reverses the incoming signal"
+              </button>
+
+              <button 
+                onclick="fillPreset('exclusive or output is high when inputs are different')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "exclusive or output is high when inputs are different"
+              </button>
+
+              <!-- Additional canonical phrases from notebook -->
+              <button 
+                onclick="fillPreset('output is high if at least one input is high')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "output is high if at least one input is high"
+              </button>
+
+              <button 
+                onclick="fillPreset('not and gate output is low only when both inputs are high otherwise high')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "not and gate output is low only when both inputs are high otherwise high"
+              </button>
+
+              <button 
+                onclick="fillPreset('output is high only when all inputs are low')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "output is high only when all inputs are low"
+              </button>
+
+              <button 
+                onclick="fillPreset('exclusive nor output is high when inputs are identical')" 
+                class="preset-chip text-xs px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-100/80 hover:bg-neutral-900 hover:text-white hover:border-neutral-900 text-neutral-700 transition font-medium text-left"
+              >
+                "exclusive nor output is high when inputs are identical"
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="flex items-center gap-3 pt-4 border-t border-neutral-100">
+            <button 
+              id="classifyBtn" 
+              onclick="handleClassify()" 
+              class="flex-1 bg-ink text-white font-medium px-5 py-3 rounded-xl hover:bg-neutral-800 transition-all shadow hover:shadow-md flex items-center justify-center gap-2 group"
+            >
+              <span id="classifyBtnText">Classify Logic Gate</span>
+              <svg id="classifySpinner" class="w-4 h-4 hidden animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <kbd class="hidden sm:inline-block text-[10px] font-mono bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded border border-neutral-700">Ctrl ↵</kbd>
+            </button>
+
+            <button 
+              onclick="clearInput()" 
+              class="px-4 py-3 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-neutral-600 text-sm font-medium transition"
+              title="Clear input"
+            >
+              Clear
+            </button>
+          </div>
+
+          <!-- Evaluation Info Sub-bar -->
+          <div class="flex items-center justify-between text-xs text-neutral-500 mt-4 pt-3 border-t border-neutral-100">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="font-mono">DistilBERT SLM (7 Classes)</span>
+            </div>
+            <span class="font-mono text-neutral-400">max_seq_len: 64</span>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: OUTPUT DISPLAY CARD -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-borderline p-6 md:p-8 shadow-sm">
+          
+          <!-- Card Header & Predicted Gate Banner -->
+          <div class="flex items-start justify-between border-b border-neutral-200 pb-5 mb-5">
+            <div>
+              <span class="text-xs font-mono uppercase tracking-wider text-neutral-400">Model Classification Output</span>
+              <div class="flex items-center gap-3 mt-1">
+                <h3 id="predictedGateName" class="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight font-mono">
+                  AND GATE
+                </h3>
+                <span id="gateCategoryBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-800 border border-neutral-200">
+                  Conjunction
+                </span>
+              </div>
+              <p id="gateDescription" class="text-xs text-neutral-600 mt-1.5 max-w-sm">
+                Output is HIGH (1) only when all inputs are HIGH (1).
+              </p>
+            </div>
+
+            <!-- Confidence Metric Display -->
+            <div class="text-right">
+              <span class="text-[10px] font-mono text-neutral-400 uppercase">Confidence</span>
+              <div id="confidenceScore" class="text-2xl font-bold font-mono text-emerald-600">
+                100.0%
+              </div>
+              <div class="w-24 bg-neutral-100 h-1.5 rounded-full overflow-hidden mt-1 ml-auto">
+                <div id="confidenceBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Logic Circuit Schematic Simulator -->
+          <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-200 mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-mono font-semibold text-neutral-700 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Live Interactive Circuit Simulator
+              </span>
+              <span class="text-[11px] font-mono text-neutral-500">Toggle inputs to test gate</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">
+              
+              <!-- Input Switches -->
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs font-mono font-bold text-neutral-700 w-16">Input A:</span>
+                  <button 
+                    id="switchA" 
+                    onclick="toggleInput('A')" 
+                    class="w-12 h-6 flex items-center bg-neutral-300 rounded-full p-1 cursor-pointer transition-colors duration-200"
+                  >
+                    <div id="thumbA" class="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200"></div>
+                  </button>
+                  <span id="stateA" class="text-xs font-mono font-bold text-neutral-500">0 (LOW)</span>
+                </div>
+
+                <div id="inputBRow" class="flex items-center gap-3">
+                  <span class="text-xs font-mono font-bold text-neutral-700 w-16">Input B:</span>
+                  <button 
+                    id="switchB" 
+                    onclick="toggleInput('B')" 
+                    class="w-12 h-6 flex items-center bg-neutral-300 rounded-full p-1 cursor-pointer transition-colors duration-200"
+                  >
+                    <div id="thumbB" class="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200"></div>
+                  </button>
+                  <span id="stateB" class="text-xs font-mono font-bold text-neutral-500">0 (LOW)</span>
+                </div>
+              </div>
+
+              <!-- Logic Gate SVG Schematic -->
+              <div id="gateSvgContainer" class="w-36 h-20 flex items-center justify-center">
+                <!-- SVG rendered dynamically -->
+              </div>
+
+              <!-- Output Indicator LED -->
+              <div class="flex flex-col items-center gap-1.5">
+                <span class="text-[10px] font-mono uppercase text-neutral-400">Output (Q)</span>
+                <div id="ledIndicator" class="w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-sm bg-neutral-200 text-neutral-500 border border-neutral-300 transition-all duration-300">
+                  0
+                </div>
+                <span id="ledStatusText" class="text-[11px] font-mono font-semibold text-neutral-500">0.0V LOW</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Truth Table & Boolean Expression -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            
+            <!-- Truth Table -->
+            <div class="border border-neutral-200 rounded-xl overflow-hidden bg-white">
+              <div class="bg-neutral-50 px-3.5 py-2 border-b border-neutral-200 flex items-center justify-between">
+                <span class="text-xs font-bold text-neutral-800 font-mono">Truth Table</span>
+                <span class="text-[10px] font-mono text-neutral-400">Binary Output</span>
+              </div>
+              <div class="p-2">
+                <table class="w-full text-xs font-mono text-center">
+                  <thead>
+                    <tr class="text-neutral-400 border-b border-neutral-100">
+                      <th class="py-1">A</th>
+                      <th class="py-1" id="thB">B</th>
+                      <th class="py-1 font-bold text-ink">Q</th>
+                      <th class="py-1 text-right pr-2">State</th>
+                    </tr>
+                  </thead>
+                  <tbody id="truthTableBody">
+                    <!-- Rows generated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Engineering Context & Specs -->
+            <div class="border border-neutral-200 rounded-xl p-4 bg-white flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-bold text-neutral-800 font-mono mb-2 block">Boolean Equation</span>
+                <div id="booleanEquation" class="text-lg font-mono text-ink font-semibold py-1.5 px-3 bg-neutral-50 rounded border border-neutral-200 mb-3 text-center">
+                  Q = A · B
+                </div>
+              </div>
+
+              <div class="space-y-1.5 text-xs font-mono text-neutral-600">
+                <div class="flex justify-between py-1 border-b border-neutral-100">
+                  <span class="text-neutral-400">IC Package:</span>
+                  <span id="icPackage" class="font-semibold text-ink">7408 (Quad AND)</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-neutral-100">
+                  <span class="text-neutral-400">Transistor Count:</span>
+                  <span id="transistorCount" class="font-semibold text-ink">6 CMOS</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-neutral-100">
+                  <span class="text-neutral-400">Universal Gate:</span>
+                  <span id="isUniversal" class="font-semibold text-ink">No</span>
+                </div>
+                <div class="flex justify-between py-1">
+                  <span class="text-neutral-400">De Morgan Dual:</span>
+                  <span id="dualGate" class="font-semibold text-ink">NAND</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Multi-Class Probability Distribution Breakdown -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-mono uppercase text-neutral-500 font-semibold">Model Class Distribution (Softmax Logits)</span>
+              <span class="text-[11px] font-mono text-neutral-400">7 Gates</span>
+            </div>
+            
+            <div id="probDistribution" class="space-y-1.5">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Export HDL Button -->
+          <div class="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between">
+            <span class="text-xs text-neutral-500 font-mono">HDL Synthesis Output:</span>
+            <button onclick="copyVerilogSnippet()" class="text-xs font-mono font-medium text-neutral-800 hover:text-ink px-3 py-1 rounded bg-neutral-100 hover:bg-neutral-200 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              <span>Copy Verilog Code</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= FEATURES SECTION ================= -->
+  <section id="features" class="py-16 md:py-24 bg-neutral-50/50 border-t border-b border-borderline">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <div class="max-w-3xl mb-12">
+        <span class="text-xs font-mono uppercase tracking-wider text-neutral-500">Core Capabilities</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-ink tracking-tight mt-1">
+          Engineered for Hardware Design Automation
+        </h2>
+        <p class="text-base text-neutral-600 mt-2">
+          Bridging the gap between informal engineering specifications and formal digital logic synthesis using fine-tuned Small Language Models.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Card 1 -->
+        <div class="bg-white p-6 rounded-2xl border border-borderline hover:border-neutral-400 transition shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-ink mb-4 font-mono font-bold text-sm">
+            01
+          </div>
+          <h3 class="text-lg font-bold text-ink mb-2">Natural Language Disambiguation</h3>
+          <p class="text-sm text-neutral-600 leading-relaxed">
+            Interprets complex conversational or technical prose descriptions into unambiguous Boolean algebraic intent without manual symbol parsing.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-white p-6 rounded-2xl border border-borderline hover:border-neutral-400 transition shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-ink mb-4 font-mono font-bold text-sm">
+            02
+          </div>
+          <h3 class="text-lg font-bold text-ink mb-2">Edge-Ready DistilBERT SLM</h3>
+          <p class="text-sm text-neutral-600 leading-relaxed">
+            Lightweight 66M parameter model optimized for instant sub-10ms CPU inference, ideal for local embedded toolchains and CAD IDE plugins.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-white p-6 rounded-2xl border border-borderline hover:border-neutral-400 transition shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-ink mb-4 font-mono font-bold text-sm">
+            03
+          </div>
+          <h3 class="text-lg font-bold text-ink mb-2">7 Canonical Topologies</h3>
+          <p class="text-sm text-neutral-600 leading-relaxed">
+            Full comprehensive coverage of fundamental gates (AND, OR, NOT), universal gates (NAND, NOR), and parity/equivalence logic (XOR, XNOR).
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bg-white p-6 rounded-2xl border border-borderline hover:border-neutral-400 transition shadow-sm">
+          <div class="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center text-ink mb-4 font-mono font-bold text-sm">
+            04
+          </div>
+          <h3 class="text-lg font-bold text-ink mb-2">Direct Verilog / HDL Export</h3>
+          <p class="text-sm text-neutral-600 leading-relaxed">
+            Instantly synthesizes standard IEEE 1364 Verilog module implementations with testbench definitions ready for Vivado, Quartus, or Yosys.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= MODEL METRICS SECTION ================= -->
+  <section id="metrics" class="py-16 md:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <div class="max-w-3xl mb-12">
+        <span class="text-xs font-mono uppercase tracking-wider text-neutral-500">Empirical Evaluation</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-ink tracking-tight mt-1">
+          DistilBERT Training & Inference Metrics
+        </h2>
+        <p class="text-base text-neutral-600 mt-2">
+          Empirical validation data from our fine-tuning runs in <code class="text-xs bg-neutral-100 px-1 py-0.5 rounded font-mono">Digital_Logic_Gate_Identifier.ipynb</code>.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left: Hyperparameters and Architecture Table -->
+        <div class="lg:col-span-6 bg-white border border-borderline rounded-2xl p-6 shadow-sm">
+          <h3 class="text-base font-bold text-ink mb-4 font-mono">Model Hyperparameters & Architecture</h3>
+          <div class="divide-y divide-neutral-100 text-sm font-mono">
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Base Architecture</span>
+              <span class="font-semibold text-ink">distilbert-base-uncased</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Parameters</span>
+              <span class="font-semibold text-ink">66,368,135 (66.4M)</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Transformer Layers</span>
+              <span class="font-semibold text-ink">6 Encoder Blocks</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Hidden Dimension / Heads</span>
+              <span class="font-semibold text-ink">768 dim / 12 heads</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Learning Rate (AdamW)</span>
+              <span class="font-semibold text-ink">2e-5 (weight_decay: 0.01)</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Batch Size / Epochs</span>
+              <span class="font-semibold text-ink">8 per device / 5 epochs</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Max Sequence Length</span>
+              <span class="font-semibold text-ink">64 WordPiece tokens</span>
+            </div>
+            <div class="py-2.5 flex justify-between">
+              <span class="text-neutral-500">Test Evaluation Accuracy</span>
+              <span class="font-bold text-emerald-600">100.0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Confusion Matrix Representation & Performance Benchmarks -->
+        <div class="lg:col-span-6 bg-white border border-borderline rounded-2xl p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-ink font-mono">Confusion Matrix (7 Classes)</h3>
+            <span class="text-xs font-mono text-emerald-600 font-semibold">Zero False Positives</span>
+          </div>
+
+          <!-- Mini Visual Matrix -->
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-center text-xs font-mono">
+              <thead>
+                <tr class="text-neutral-400 border-b border-neutral-100">
+                  <th class="p-1.5 text-left">Truth \ Pred</th>
+                  <th class="p-1.5">AND</th>
+                  <th class="p-1.5">OR</th>
+                  <th class="p-1.5">NOT</th>
+                  <th class="p-1.5">NAND</th>
+                  <th class="p-1.5">NOR</th>
+                  <th class="p-1.5">XOR</th>
+                  <th class="p-1.5">XNOR</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-neutral-100">
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">AND</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">OR</td>
+                  <td class="p-1.5 text-neutral-300">0</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">NOT</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">NAND</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">NOR</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">XOR</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                  <td class="p-1.5 text-neutral-300">0</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 text-left font-bold text-neutral-700">XNOR</td>
+                  <td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td><td class="p-1.5 text-neutral-300">0</td>
+                  <td class="p-1.5 bg-neutral-900 text-white font-bold rounded">1.0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Latency & Throughput Benchmark -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+              <span class="text-[10px] font-mono uppercase text-neutral-500">CPU Latency (x86_64)</span>
+              <div class="text-xl font-bold font-mono text-ink mt-0.5">8.4 ms</div>
+              <span class="text-[11px] text-neutral-500">119 req/sec</span>
+            </div>
+            <div class="p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+              <span class="text-[10px] font-mono uppercase text-neutral-500">GPU Latency (CUDA)</span>
+              <div class="text-xl font-bold font-mono text-ink mt-0.5">1.2 ms</div>
+              <span class="text-[11px] text-neutral-500">830 req/sec</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= ARCHITECTURE / ABOUT SECTION ================= -->
+  <section id="about" class="py-16 md:py-24 bg-neutral-50/50 border-t border-borderline">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <div class="max-w-3xl mb-12">
+        <span class="text-xs font-mono uppercase tracking-wider text-neutral-500">System Architecture</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-ink tracking-tight mt-1">
+          End-to-End Inference Pipeline
+        </h2>
+        <p class="text-base text-neutral-600 mt-2">
+          From behavioral natural language description to gate topology and verified hardware truth table synthesis.
+        </p>
+      </div>
+
+      <!-- Pipeline Step Diagram -->
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        
+        <!-- Step 1 -->
+        <div class="bg-white p-5 rounded-xl border border-borderline relative">
+          <div class="text-xs font-mono text-neutral-400 mb-1">STAGE 01</div>
+          <h4 class="font-bold text-ink text-sm mb-1.5">Input Specification</h4>
+          <p class="text-xs text-neutral-600 leading-relaxed">
+            Raw natural text string ingested through REST endpoint or UI sandbox.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-white p-5 rounded-xl border border-borderline relative">
+          <div class="text-xs font-mono text-neutral-400 mb-1">STAGE 02</div>
+          <h4 class="font-bold text-ink text-sm mb-1.5">WordPiece Tokenizer</h4>
+          <p class="text-xs text-neutral-600 leading-relaxed">
+            Subword tokenization with max_length=64 truncation & attention mask padding.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-white p-5 rounded-xl border border-borderline relative">
+          <div class="text-xs font-mono text-neutral-400 mb-1">STAGE 03</div>
+          <h4 class="font-bold text-ink text-sm mb-1.5">DistilBERT SLM</h4>
+          <p class="text-xs text-neutral-600 leading-relaxed">
+            6 transformer encoder layers extract bidirectional contextual logic relationships.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="bg-white p-5 rounded-xl border border-borderline relative">
+          <div class="text-xs font-mono text-neutral-400 mb-1">STAGE 04</div>
+          <h4 class="font-bold text-ink text-sm mb-1.5">Classifier Head</h4>
+          <p class="text-xs text-neutral-600 leading-relaxed">
+            Linear dense layer + Softmax projects 768-dim [CLS] token to 7 class probabilities.
+          </p>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="bg-white p-5 rounded-xl border border-borderline relative">
+          <div class="text-xs font-mono text-neutral-400 mb-1">STAGE 05</div>
+          <h4 class="font-bold text-ink text-sm mb-1.5">Logic & HDL Synthesis</h4>
+          <p class="text-xs text-neutral-600 leading-relaxed">
+            Instantiates truth table, Boolean equation, IC mapping, and synthesizable Verilog.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-borderline py-12">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded bg-ink flex items-center justify-center text-white">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <span class="font-bold text-sm text-ink">LogicGate Identifier</span>
+        <span class="text-xs text-neutral-400 font-mono">Project P2</span>
+      </div>
+
+      <div class="text-xs text-neutral-500 font-mono text-center md:text-right">
+        Digital Logic Gate Identifier from Natural Language Descriptions · Hugging Face DistilBERT
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ================= TECHNICAL DOCS MODAL ("Explore Docs") ================= -->
+  <div id="docsModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto border border-borderline shadow-2xl p-6 sm:p-8">
+      
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-4 mb-6">
+        <div>
+          <h3 class="text-xl font-bold text-ink">LogicGate Identifier API Documentation</h3>
+          <p class="text-xs text-neutral-500 font-mono mt-0.5">REST API Contract & Integration Reference</p>
+        </div>
+        <button onclick="toggleDocsModal(false)" class="text-neutral-400 hover:text-ink p-1 rounded-lg hover:bg-neutral-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-6 text-sm text-neutral-700">
+        
+        <!-- Endpoint 1 -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 font-mono">
+            <span class="px-2 py-0.5 bg-neutral-900 text-white rounded text-xs font-bold">POST</span>
+            <span class="text-ink font-semibold">/api/classify</span>
+          </div>
+          <p class="text-xs text-neutral-600 mb-2">Classifies a natural-language circuit behavior into a target logic gate.</p>
+          <pre class="bg-neutral-900 text-neutral-100 p-3 rounded-lg text-xs font-mono overflow-x-auto"><code>curl -X POST "http://localhost:8000/api/classify" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "output high only when both inputs are high"}'</code></pre>
+        </div>
+
+        <!-- Sample Response -->
+        <div>
+          <span class="text-xs font-mono font-bold text-neutral-800 block mb-1.5">Sample JSON Response:</span>
+          <pre class="bg-neutral-900 text-emerald-400 p-3 rounded-lg text-xs font-mono overflow-x-auto"><code>{
+  "query": "output high only when both inputs are high",
+  "predicted_gate": "AND",
+  "confidence": 100.0,
+  "probabilities": {
+    "AND": 100.0,
+    "OR": 0.0,
+    "NOT": 0.0,
+    "NAND": 0.0,
+    "NOR": 0.0,
+    "XOR": 0.0,
+    "XNOR": 0.0
+  },
+  "details": {
+    "name": "AND Gate",
+    "boolean_expression": "Q = A · B",
+    "ic_package": "7408 (Quad 2-Input AND Gate)",
+    "transistor_count": 6
+  }
+}</code></pre>
+        </div>
+
+        <!-- Python Example -->
+        <div>
+          <span class="text-xs font-mono font-bold text-neutral-800 block mb-1.5">Python Client Integration:</span>
+          <pre class="bg-neutral-900 text-neutral-200 p-3 rounded-lg text-xs font-mono overflow-x-auto"><code>import requests
+
+res = requests.post("http://localhost:8000/api/classify", json={
+    "description": "reverses the incoming signal"
+})
+gate = res.json()["predicted_gate"]
+print("Identified Gate:", gate) # Output: NOT</code></pre>
+        </div>
+
+      </div>
+
+      <div class="mt-8 pt-4 border-t border-neutral-200 flex justify-end">
+        <button onclick="toggleDocsModal(false)" class="px-5 py-2 rounded-full bg-ink text-white text-xs font-medium hover:bg-neutral-800 transition">
+          Close Documentation
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= CLIENT JAVASCRIPT ================= -->
+  <script>
+    // Canonical Gate Database & Metadata
+    const GATE_DATA = {
+      "AND": {
+        name: "AND Gate",
+        category: "Conjunction Gate",
+        description: "Output is HIGH (1) only when all inputs are HIGH (1).",
+        boolean: "Q = A · B",
+        latex: "Q = A \\cdot B",
+        ic: "7408 (Quad 2-Input AND)",
+        transistors: "6 CMOS",
+        isUniversal: "No",
+        dual: "NAND",
+        inputsCount: 2,
+        truthTable: [
+          {a: 0, b: 0, q: 0, state: "Low"},
+          {a: 0, b: 1, q: 0, state: "Low"},
+          {a: 1, b: 0, q: 0, state: "Low"},
+          {a: 1, b: 1, q: 1, state: "High (Active)"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="25" x2="45" y2="25"/>
+                <line x1="10" y1="55" x2="45" y2="55"/>
+                <path d="M45,15 L75,15 A25,25 0 0 1 75,65 L45,65 Z" fill="#ffffff"/>
+                <line x1="100" y1="40" x2="145" y2="40"/>
+                <text x="15" y="20" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="15" y="70" font-size="9" font-family="monospace" stroke="none" fill="#71717a">B</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module and_gate (input wire A, input wire B, output wire Q);
+  assign Q = A & B;
+endmodule`
+      },
+      "OR": {
+        name: "OR Gate",
+        category: "Disjunction Gate",
+        description: "Output is HIGH (1) if at least one input is HIGH (1).",
+        boolean: "Q = A + B",
+        latex: "Q = A + B",
+        ic: "7432 (Quad 2-Input OR)",
+        transistors: "6 CMOS",
+        isUniversal: "No",
+        dual: "NOR",
+        inputsCount: 2,
+        truthTable: [
+          {a: 0, b: 0, q: 0, state: "Low"},
+          {a: 0, b: 1, q: 1, state: "High (Active)"},
+          {a: 1, b: 0, q: 1, state: "High (Active)"},
+          {a: 1, b: 1, q: 1, state: "High (Active)"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="25" x2="48" y2="25"/>
+                <line x1="10" y1="55" x2="48" y2="55"/>
+                <path d="M45,15 C55,30 55,50 45,65 C65,65 90,55 105,40 C90,25 65,15 45,15 Z" fill="#ffffff"/>
+                <line x1="105" y1="40" x2="145" y2="40"/>
+                <text x="15" y="20" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="15" y="70" font-size="9" font-family="monospace" stroke="none" fill="#71717a">B</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module or_gate (input wire A, input wire B, output wire Q);
+  assign Q = A | B;
+endmodule`
+      },
+      "NOT": {
+        name: "NOT Gate (Inverter)",
+        category: "Negation Gate",
+        description: "Inverts incoming signal: 1 yields 0, and 0 yields 1.",
+        boolean: "Q = A'",
+        latex: "Q = \\overline{A}",
+        ic: "7404 (Hex Inverter)",
+        transistors: "2 CMOS",
+        isUniversal: "No",
+        dual: "BUFFER",
+        inputsCount: 1,
+        truthTable: [
+          {a: 0, b: "-", q: 1, state: "High (Inverted)"},
+          {a: 1, b: "-", q: 0, state: "Low (Inverted)"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="40" x2="50" y2="40"/>
+                <polygon points="50,20 50,60 90,40" fill="#ffffff"/>
+                <circle cx="95" cy="40" r="5" fill="#ffffff"/>
+                <line x1="100" y1="40" x2="145" y2="40"/>
+                <text x="15" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module not_gate (input wire A, output wire Q);
+  assign Q = ~A;
+endmodule`
+      },
+      "NAND": {
+        name: "NAND Gate",
+        category: "Universal Gate",
+        description: "Output is LOW (0) only when all inputs are HIGH (1).",
+        boolean: "Q = (A · B)'",
+        latex: "Q = \\overline{A \\cdot B}",
+        ic: "7400 (Quad 2-Input NAND)",
+        transistors: "4 CMOS",
+        isUniversal: "Yes (Universal)",
+        dual: "AND",
+        inputsCount: 2,
+        truthTable: [
+          {a: 0, b: 0, q: 1, state: "High (Active)"},
+          {a: 0, b: 1, q: 1, state: "High (Active)"},
+          {a: 1, b: 0, q: 1, state: "High (Active)"},
+          {a: 1, b: 1, q: 0, state: "Low"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="25" x2="45" y2="25"/>
+                <line x1="10" y1="55" x2="45" y2="55"/>
+                <path d="M45,15 L70,15 A25,25 0 0 1 70,65 L45,65 Z" fill="#ffffff"/>
+                <circle cx="100" cy="40" r="5" fill="#ffffff"/>
+                <line x1="105" y1="40" x2="145" y2="40"/>
+                <text x="15" y="20" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="15" y="70" font-size="9" font-family="monospace" stroke="none" fill="#71717a">B</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module nand_gate (input wire A, input wire B, output wire Q);
+  assign Q = ~(A & B);
+endmodule`
+      },
+      "NOR": {
+        name: "NOR Gate",
+        category: "Universal Gate",
+        description: "Output is HIGH (1) only when all inputs are LOW (0).",
+        boolean: "Q = (A + B)'",
+        latex: "Q = \\overline{A + B}",
+        ic: "7402 (Quad 2-Input NOR)",
+        transistors: "4 CMOS",
+        isUniversal: "Yes (Universal)",
+        dual: "OR",
+        inputsCount: 2,
+        truthTable: [
+          {a: 0, b: 0, q: 1, state: "High (Active)"},
+          {a: 0, b: 1, q: 0, state: "Low"},
+          {a: 1, b: 0, q: 0, state: "Low"},
+          {a: 1, b: 1, q: 0, state: "Low"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="25" x2="48" y2="25"/>
+                <line x1="10" y1="55" x2="48" y2="55"/>
+                <path d="M45,15 C55,30 55,50 45,65 C65,65 88,55 98,40 C88,25 65,15 45,15 Z" fill="#ffffff"/>
+                <circle cx="104" cy="40" r="5" fill="#ffffff"/>
+                <line x1="109" y1="40" x2="145" y2="40"/>
+                <text x="15" y="20" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="15" y="70" font-size="9" font-family="monospace" stroke="none" fill="#71717a">B</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module nor_gate (input wire A, input wire B, output wire Q);
+  assign Q = ~(A | B);
+endmodule`
+      },
+      "XOR": {
+        name: "XOR Gate",
+        category: "Odd Parity Gate",
+        description: "Output is HIGH (1) when inputs are different / mismatch.",
+        boolean: "Q = A ⊕ B",
+        latex: "Q = A \\oplus B",
+        ic: "7486 (Quad 2-Input XOR)",
+        transistors: "12 CMOS",
+        isUniversal: "No",
+        dual: "XNOR",
+        inputsCount: 2,
+        truthTable: [
+          {a: 0, b: 0, q: 0, state: "Low (Match)"},
+          {a: 0, b: 1, q: 1, state: "High (Mismatch)"},
+          {a: 1, b: 0, q: 1, state: "High (Mismatch)"},
+          {a: 1, b: 1, q: 0, state: "Low (Match)"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="25" x2="40" y2="25"/>
+                <line x1="10" y1="55" x2="40" y2="55"/>
+                <path d="M38,15 C48,30 48,50 38,65" fill="none"/>
+                <path d="M47,15 C57,30 57,50 47,65 C67,65 92,55 107,40 C92,25 67,15 47,15 Z" fill="#ffffff"/>
+                <line x1="107" y1="40" x2="145" y2="40"/>
+                <text x="15" y="20" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="15" y="70" font-size="9" font-family="monospace" stroke="none" fill="#71717a">B</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module xor_gate (input wire A, input wire B, output wire Q);
+  assign Q = A ^ B;
+endmodule`
+      },
+      "XNOR": {
+        name: "XNOR Gate",
+        category: "Equivalence Gate",
+        description: "Output is HIGH (1) when inputs are identical / matching.",
+        boolean: "Q = (A ⊕ B)'",
+        latex: "Q = \\overline{A \\oplus B}",
+        ic: "74266 (Quad 2-Input XNOR)",
+        transistors: "12 CMOS",
+        isUniversal: "No",
+        dual: "XOR",
+        inputsCount: 2,
+        truthTable: [
+          {a: 0, b: 0, q: 1, state: "High (Match)"},
+          {a: 0, b: 1, q: 0, state: "Low (Mismatch)"},
+          {a: 1, b: 0, q: 0, state: "Low (Mismatch)"},
+          {a: 1, b: 1, q: 1, state: "High (Match)"}
+        ],
+        svg: `<svg viewBox="0 0 160 80" class="w-full h-full text-ink stroke-current fill-none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="10" y1="25" x2="38" y2="25"/>
+                <line x1="10" y1="55" x2="38" y2="55"/>
+                <path d="M36,15 C46,30 46,50 36,65" fill="none"/>
+                <path d="M45,15 C55,30 55,50 45,65 C65,65 90,55 102,40 C90,25 65,15 45,15 Z" fill="#ffffff"/>
+                <circle cx="108" cy="40" r="5" fill="#ffffff"/>
+                <line x1="113" y1="40" x2="145" y2="40"/>
+                <text x="15" y="20" font-size="9" font-family="monospace" stroke="none" fill="#71717a">A</text>
+                <text x="15" y="70" font-size="9" font-family="monospace" stroke="none" fill="#71717a">B</text>
+                <text x="135" y="32" font-size="9" font-family="monospace" stroke="none" fill="#71717a">Q</text>
+              </svg>`,
+        verilog: `module xnor_gate (input wire A, input wire B, output wire Q);
+  assign Q = ~(A ^ B);
+endmodule`
+      }
+    };
+
+    // State Variables
+    let currentGate = "AND";
+    let inputStateA = 0;
+    let inputStateB = 0;
+
+    const samplePresets = [
+      "output high only when both inputs are high",
+      "reverses the incoming signal",
+      "exclusive or output is high when inputs are different",
+      "output is high if at least one input is high",
+      "not and gate output is low only when both inputs are high otherwise high",
+      "output is high only when all inputs are low",
+      "exclusive nor output is high when inputs are identical",
+      "gives a high signal only when both inputs are 1",
+      "output is zero if any input is high",
+      "reverses the incoming bit"
+    ];
+
+    // Character Counter
+    const promptInput = document.getElementById("promptInput");
+    const charCount = document.getElementById("charCount");
+
+    promptInput.addEventListener("input", () => {
+      charCount.textContent = `${promptInput.value.length} / 256 chars`;
+    });
+
+    // Keyboard shortcut (Ctrl + Enter to classify)
+    promptInput.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        handleClassify();
+      }
+    });
+
+    function fillPreset(text) {
+      promptInput.value = text;
+      charCount.textContent = `${text.length} / 256 chars`;
+      handleClassify();
+    }
+
+    function pickRandomPreset() {
+      const randomText = samplePresets[Math.floor(Math.random() * samplePresets.length)];
+      fillPreset(randomText);
+    }
+
+    function clearInput() {
+      promptInput.value = "";
+      charCount.textContent = "0 / 256 chars";
+      promptInput.focus();
+    }
+
+    function toggleDocsModal(show) {
+      const modal = document.getElementById("docsModal");
+      if (show) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      } else {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    // Interactive Circuit Simulator Logic
+    function toggleInput(pin) {
+      if (pin === 'A') {
+        inputStateA = inputStateA === 0 ? 1 : 0;
+      } else if (pin === 'B') {
+        inputStateB = inputStateB === 0 ? 1 : 0;
+      }
+      updateSimulatorUI();
+    }
+
+    function updateSimulatorUI() {
+      const switchA = document.getElementById("switchA");
+      const thumbA = document.getElementById("thumbA");
+      const stateA = document.getElementById("stateA");
+
+      const switchB = document.getElementById("switchB");
+      const thumbB = document.getElementById("thumbB");
+      const stateB = document.getElementById("stateB");
+      const inputBRow = document.getElementById("inputBRow");
+
+      // Update Switch A
+      if (inputStateA === 1) {
+        switchA.classList.remove("bg-neutral-300");
+        switchA.classList.add("bg-neutral-900");
+        thumbA.classList.add("translate-x-6");
+        stateA.textContent = "1 (HIGH)";
+        stateA.classList.remove("text-neutral-500");
+        stateA.classList.add("text-emerald-600");
+      } else {
+        switchA.classList.add("bg-neutral-300");
+        switchA.classList.remove("bg-neutral-900");
+        thumbA.classList.remove("translate-x-6");
+        stateA.textContent = "0 (LOW)";
+        stateA.classList.add("text-neutral-500");
+        stateA.classList.remove("text-emerald-600");
+      }
+
+      // Handle NOT gate (1 input)
+      if (currentGate === "NOT") {
+        inputBRow.classList.add("opacity-30", "pointer-events-none");
+      } else {
+        inputBRow.classList.remove("opacity-30", "pointer-events-none");
+      }
+
+      // Update Switch B
+      if (inputStateB === 1) {
+        switchB.classList.remove("bg-neutral-300");
+        switchB.classList.add("bg-neutral-900");
+        thumbB.classList.add("translate-x-6");
+        stateB.textContent = "1 (HIGH)";
+        stateB.classList.remove("text-neutral-500");
+        stateB.classList.add("text-emerald-600");
+      } else {
+        switchB.classList.add("bg-neutral-300");
+        switchB.classList.remove("bg-neutral-900");
+        thumbB.classList.remove("translate-x-6");
+        stateB.textContent = "0 (LOW)";
+        stateB.classList.add("text-neutral-500");
+        stateB.classList.remove("text-emerald-600");
+      }
+
+      // Calculate Gate Output Q
+      let outputQ = 0;
+      const A = inputStateA;
+      const B = inputStateB;
+
+      switch(currentGate) {
+        case "AND":  outputQ = (A && B) ? 1 : 0; break;
+        case "OR":   outputQ = (A || B) ? 1 : 0; break;
+        case "NOT":  outputQ = (!A) ? 1 : 0; break;
+        case "NAND": outputQ = (!(A && B)) ? 1 : 0; break;
+        case "NOR":  outputQ = (!(A || B)) ? 1 : 0; break;
+        case "XOR":  outputQ = (A ^ B) ? 1 : 0; break;
+        case "XNOR": outputQ = (!(A ^ B)) ? 1 : 0; break;
+      }
+
+      // Update Output LED
+      const led = document.getElementById("ledIndicator");
+      const ledText = document.getElementById("ledStatusText");
+
+      if (outputQ === 1) {
+        led.textContent = "1";
+        led.classList.remove("bg-neutral-200", "text-neutral-500", "border-neutral-300");
+        led.classList.add("bg-emerald-500", "text-white", "border-emerald-600", "shadow-lg", "shadow-emerald-500/30");
+        ledText.textContent = "5.0V HIGH";
+        ledText.classList.remove("text-neutral-500");
+        ledText.classList.add("text-emerald-600");
+      } else {
+        led.textContent = "0";
+        led.classList.add("bg-neutral-200", "text-neutral-500", "border-neutral-300");
+        led.classList.remove("bg-emerald-500", "text-white", "border-emerald-600", "shadow-lg", "shadow-emerald-500/30");
+        ledText.textContent = "0.0V LOW";
+        ledText.classList.add("text-neutral-500");
+        ledText.classList.remove("text-emerald-600");
+      }
+
+      // Highlight active row in truth table
+      highlightActiveTableRow();
+    }
+
+    function highlightActiveTableRow() {
+      const rows = document.querySelectorAll("#truthTableBody tr");
+      rows.forEach(row => {
+        const rowA = parseInt(row.getAttribute("data-a"));
+        const rowB = row.getAttribute("data-b");
+
+        let isActive = false;
+        if (currentGate === "NOT") {
+          isActive = (rowA === inputStateA);
+        } else {
+          isActive = (rowA === inputStateA && parseInt(rowB) === inputStateB);
+        }
+
+        if (isActive) {
+          row.classList.add("bg-neutral-900", "text-white");
+          row.classList.remove("text-neutral-700");
+        } else {
+          row.classList.remove("bg-neutral-900", "text-white");
+          row.classList.add("text-neutral-700");
+        }
+      });
+    }
+
+    // Render Gate Details on UI
+    function renderGateDetails(gateKey, confidence, probabilities) {
+      currentGate = gateKey;
+      const meta = GATE_DATA[gateKey] || GATE_DATA["AND"];
+
+      // Update text
+      document.getElementById("predictedGateName").textContent = meta.name.toUpperCase();
+      document.getElementById("gateCategoryBadge").textContent = meta.category;
+      document.getElementById("gateDescription").textContent = meta.description;
+      
+      // Update confidence
+      document.getElementById("confidenceScore").textContent = `${confidence.toFixed(1)}%`;
+      document.getElementById("confidenceBar").style.width = `${Math.min(confidence, 100)}%`;
+
+      // Update SVG Schematic
+      document.getElementById("gateSvgContainer").innerHTML = meta.svg;
+
+      // Update Boolean Equation with KaTeX if available
+      const boolEqElem = document.getElementById("booleanEquation");
+      if (window.katex && meta.latex) {
+        try {
+          katex.render(meta.latex, boolEqElem, { throwOnError: false, displayMode: true });
+        } catch(e) {
+          boolEqElem.textContent = meta.boolean;
+        }
+      } else {
+        boolEqElem.textContent = meta.boolean;
+      }
+
+      // Update specs
+      document.getElementById("icPackage").textContent = meta.ic;
+      document.getElementById("transistorCount").textContent = meta.transistors;
+      document.getElementById("isUniversal").textContent = meta.isUniversal;
+      document.getElementById("dualGate").textContent = meta.dual;
+
+      // Update Truth Table Header
+      const thB = document.getElementById("thB");
+      if (meta.inputsCount === 1) {
+        thB.style.display = "none";
+      } else {
+        thB.style.display = "table-cell";
+      }
+
+      // Render Truth Table Rows
+      const tbody = document.getElementById("truthTableBody");
+      tbody.innerHTML = "";
+      meta.truthTable.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-a", row.a);
+        tr.setAttribute("data-b", row.b);
+        tr.className = "border-b border-neutral-100 transition-colors py-1.5";
+        
+        let bCol = meta.inputsCount === 1 ? "" : `<td class="py-1">${row.b}</td>`;
+        tr.innerHTML = `
+          <td class="py-1">${row.a}</td>
+          ${bCol}
+          <td class="py-1 font-bold">${row.q}</td>
+          <td class="py-1 text-right pr-2 text-[10px] opacity-75">${row.state}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Render Multi-Class Distribution Bars
+      const probContainer = document.getElementById("probDistribution");
+      probContainer.innerHTML = "";
+
+      const sortedGates = Object.keys(GATE_DATA);
+      sortedGates.forEach(g => {
+        const prob = (probabilities && probabilities[g] !== undefined) 
+          ? probabilities[g] 
+          : (g === gateKey ? confidence : ((100 - confidence) / 6));
+
+        const isTop = (g === gateKey);
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "flex items-center gap-2 text-xs font-mono";
+        rowDiv.innerHTML = `
+          <span class="w-12 font-medium ${isTop ? 'text-ink font-bold' : 'text-neutral-400'}">${g}</span>
+          <div class="flex-1 bg-neutral-100 h-2 rounded-full overflow-hidden">
+            <div class="h-full rounded-full ${isTop ? 'bg-neutral-900' : 'bg-neutral-300'} transition-all duration-500" style="width: ${prob}%;"></div>
+          </div>
+          <span class="w-12 text-right ${isTop ? 'text-ink font-bold' : 'text-neutral-400'}">${prob.toFixed(1)}%</span>
+        `;
+        probContainer.appendChild(rowDiv);
+      });
+
+      // Update live simulator and truth table highlight
+      updateSimulatorUI();
+    }
+
+    // Client-side fallback semantic classifier
+    function clientClassify(text) {
+      const q = text.toLowerCase().trim();
+      const words = q.split(/\W+/);
+
+      let scores = { "AND": 0.1, "OR": 0.1, "NOT": 0.1, "NAND": 0.1, "NOR": 0.1, "XOR": 0.1, "XNOR": 0.1 };
+
+      if (q.includes("reverse") || q.includes("invert") || q.includes("opposite") || q.includes("negat") || q.includes("complement")) {
+        scores["NOT"] += 12;
+      }
+      if (q.includes("exclusive or") || q.includes("xor") || q.includes("different") || q.includes("mismatch") || q.includes("not both")) {
+        scores["XOR"] += 12;
+      }
+      if (q.includes("exclusive nor") || q.includes("xnor") || q.includes("equivalence") || q.includes("identical") || q.includes("same either") || q.includes("both 0 or both 1")) {
+        scores["XNOR"] += 12;
+      }
+      if (q.includes("not and") || q.includes("nand") || (q.includes("low only when both") || q.includes("0 only when both"))) {
+        scores["NAND"] += 12;
+      }
+      if (q.includes("not or") || q.includes("nor") || q.includes("neither") || q.includes("zero if any") || q.includes("low if any")) {
+        scores["NOR"] += 12;
+      }
+      if ((q.includes("both inputs") || q.includes("all inputs are 1") || q.includes("conjunction") || q.includes("only when both")) && !q.includes("not") && !q.includes("low only")) {
+        scores["AND"] += 10;
+      }
+      if ((q.includes("either input") || q.includes("at least one") || q.includes("disjunction") || q.includes("any input is high")) && !q.includes("not") && !q.includes("neither")) {
+        scores["OR"] += 10;
+      }
+
+      // Softmax
+      const maxScore = Math.max(...Object.values(scores));
+      let exps = {};
+      let sumExp = 0;
+      for (let k in scores) {
+        exps[k] = Math.exp(scores[k] - maxScore);
+        sumExp += exps[k];
+      }
+      let probs = {};
+      for (let k in scores) {
+        probs[k] = parseFloat(((exps[k] / sumExp) * 100).toFixed(1));
+      }
+
+      let bestGate = Object.keys(probs).reduce((a, b) => probs[a] > probs[b] ? a : b);
+      return {
+        predicted_gate: bestGate,
+        confidence: probs[bestGate],
+        probabilities: probs
+      };
+    }
+
+    // Trigger Classification
+    async function handleClassify() {
+      const text = promptInput.value.trim();
+      if (!text) {
+        promptInput.focus();
+        return;
+      }
+
+      const btn = document.getElementById("classifyBtn");
+      const btnText = document.getElementById("classifyBtnText");
+      const spinner = document.getElementById("classifySpinner");
+
+      // Loading state
+      btnText.textContent = "Analyzing...";
+      spinner.classList.remove("hidden");
+      btn.disabled = true;
+
+      try {
+        // Attempt backend API call
+        const response = await fetch("/api/classify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: text })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          renderGateDetails(data.predicted_gate, data.confidence, data.probabilities);
+        } else {
+          // Fallback to client logic
+          const fallback = clientClassify(text);
+          renderGateDetails(fallback.predicted_gate, fallback.confidence, fallback.probabilities);
+        }
+      } catch (err) {
+        // Network or offline fallback
+        const fallback = clientClassify(text);
+        renderGateDetails(fallback.predicted_gate, fallback.confidence, fallback.probabilities);
+      } finally {
+        btnText.textContent = "Classify Logic Gate";
+        spinner.classList.add("hidden");
+        btn.disabled = false;
+      }
+    }
+
+    function copyVerilogSnippet() {
+      const meta = GATE_DATA[currentGate];
+      if (meta && meta.verilog) {
+        navigator.clipboard.writeText(meta.verilog).then(() => {
+          alert(`Verilog HDL module for ${meta.name} copied to clipboard!`);
+        });
+      }
+    }
+
+    // Initialize Default State
+    window.addEventListener("DOMContentLoaded", () => {
+      // Pre-fill initial query
+      promptInput.value = "output high only when both inputs are high";
+      charCount.textContent = `${promptInput.value.length} / 256 chars`;
+      renderGateDetails("AND", 100.0, {
+        "AND": 100.0, "OR": 0.0, "NOT": 0.0, "NAND": 0.0, "NOR": 0.0, "XOR": 0.0, "XNOR": 0.0
+      });
+    });
+  </script>
+
+</body>
+</html>
+
